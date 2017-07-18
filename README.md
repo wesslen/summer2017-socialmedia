@@ -20,7 +20,7 @@ This three part workshop series will cover three major tools for computational s
 
 Many of the tools were created by political scientists and therefore most examples will focus on political-related events although they can easily be applied to other social sciences (e.g., geography, communications, management, sociology, public health).
 
-## Schedule for Project Mosaic Workshop
+## Schedule for the Workshops
 
 | Day 1: Tues July 18 | Acquiring Social Media Data via APIs (Twitter and Facebook)  |
 | ------------------- | ------------------------------------------------------- |
