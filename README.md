@@ -39,7 +39,7 @@ Many of the tools were created by political scientists and therefore most exampl
 | Day 3: Thur July 27 | Text as data: Analyzing Social Media Content            |
 | ------------------- | ------------------------------------------------------- |
 | Lecture             | [Text as Data for Social Media]()                       |
-| Case Study          | [Analyzing Charlotte Twitter Topics]()|
+| Case Study          | [TBD]()|
 
 ## Setup and Preparation
 
@@ -61,8 +61,8 @@ You will need [R](https://cran.r-project.org/) and [RStudio](https://www.rstudio
 Also, please install these packages by running this code:
 
 ```{r}
-packages <- c("tidyverse","rfacebook","twitteR","streamR","rmarkdown","rknit","devtools",
-                "quanteda","stm","tidytext","tidyr","wordcloud","reshape2")
+packages <- c("tidyverse","Rfacebook","twitteR","streamR","rmarkdown","devtools",
+              "quanteda","stm","tidytext","tidyr","wordcloud","reshape2")
 
 install.packages(packages)
 ```
