@@ -45,7 +45,7 @@ Many of the tools were created by political scientists and therefore most exampl
 
 ### R Knowledge
 
-This workshop assumes you have basic knowledge of R to:
+This workshop assumes you have basic knowledge of how to :
 
 * Set your working directory
 * Install R packages via CRAN
