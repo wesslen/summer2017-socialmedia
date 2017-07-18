@@ -1,0 +1,192 @@
+---
+title: "Facebook API"
+author: "Ryan Wesslen"
+date: "July 18, 2017"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE)
+```
+
+## Facebook API
+
+To pull from the Facebook API, we'll use the `Rfacebook` package.
+
+```{r}
+#install.packages("Rfacebook")
+library(Rfacebook)
+```
+
+To get access, you need an OAuth code. You can obtain one from https://developers.facebook.com/tools/explorer so long as you have your own Facebook account.
+
+Once you're there:
+
+1.  Click on "Get Access Token"
+2.  Copy the long code ("Access Token") and paste it here below, substituting to fb_oauth.
+
+Note that these last only two hours, so you will need to update each time. 
+
+```{r}
+# see ?fbOAuth on how to get a token longer than two hours
+fb_oauth = 'xxx'
+```
+
+Let's test out the connection.
+
+```{r}
+getUsers("me", token=fb_oauth, private_info=TRUE)
+```
+
+## Public Pages
+
+To pull from Facebook's API, we can only pull from public pages. In order to do so, we need to know what pages we're looking for. We can do this one of two ways: 
+
+1. manually finding the page id
+2. searching through the `searchPages` function.
+
+Let's first try searching.
+
+### Searching for Public Pages
+
+Let's consider the controversal news outlet [InfoWars](https://www.infowars.com/)
+
+```{r}
+pages <- searchPages("infowars", token = fb_oauth, n = 10)
+```
+
+From this, we can find the page ID (80256732576) for InfoWars.
+
+### Get Information from Public Page
+
+```{r}
+infoWars <- getPage(page = "80256732576", 
+                    token = fb_oauth, 
+                    n = 1000, 
+                    since = NULL, # from date (if null, take most recent)
+                    until = NULL, # to date (if null, take most recent)
+                    feed = FALSE, # include posts made by non-admin
+                    reactions = TRUE, # include reactions count
+                    verbose= TRUE)
+```
+
+> Application: Dictionary-Based Sentiment Analysis
+
+For this simple exercise, I'll introduce `tidytext`, a helpful R package to organize text in the `tidy` paradigm.
+
+```{r}
+library(tidytext); library(tidyr)
+bing <- get_sentiments("bing")
+data("stop_words")
+
+wordCount <- infoWars %>% # take dataframe
+  filter(!is.na(message)) %>% # remove missing posts
+  unnest_tokens(word, message) %>% # tokenize 
+  anti_join(stop_words) %>% # remove stop words
+  inner_join(bing) %>% # combine with bing sentiment dictionary
+  count(word, sentiment, sort = TRUE) # count by word and sentiment
+
+wordCount %>%
+  filter(n > 10) %>%
+  mutate(n = ifelse(sentiment == "negative", -n, n)) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  ylab("Contribution to sentiment")
+
+library(wordcloud)
+wordCount %>%
+  with(wordcloud(word, n, max.words = 100))
+
+library(reshape2)
+wordCount %>% 
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("#F8766D", "#00BFC4"),
+                   max.words = 100)
+```
+
+### Likes
+
+Let's find the post with the most likes...
+
+```{r}
+#sort by number of likes
+infoWars <- infoWars[order(infoWars$likes_count, decreasing = TRUE),]
+
+# columns to keep
+col <- c("message","created_time","type","link")
+
+# choose top message
+infoWars[1,col]
+```
+
+and let's get a list of everyone who liked it.
+
+```{r}
+postID <- infoWars$id[1]
+
+userLikes <- getLikes(postID, n = 500, token = fb_oauth)
+
+# note limitations
+userInfo <- getUsers(userLikes$id[1:10], token = fb_oauth, private_info = FALSE)
+```
+
+### Comments
+
+Alternatively, let's get all of the comments for this top post.
+
+```{r}
+topPost <- getPost(post = postID,
+                   token = fb_oauth,
+                   n = 500,
+                   comments = TRUE,
+                   likes = TRUE)
+```
+
+Note that this data structure is saved as a list of multiple dataframes.
+
+Let's now find the comment with the most comments...
+
+```{r}
+dfComments <- topPost$comments
+
+#sort by number of comments
+dfComments <- dfComments[order(dfComments$comments_count, decreasing = T),]
+
+url <- paste0("https://www.facebook.com/",dfComments$id[1])
+browseURL(url)
+```
+
+We can then pull the comments from this comment...
+
+```{r}
+dfC2 <- getCommentReplies(dfComments$id[1], token = fb_oauth, n = 500)
+replies <- dfC2$replies
+```
+
+### Groups
+
+We can also search and pull pages for Groups.
+
+First, we'll use the `searchGroup()` function to find a group. Then let's keep only the open ones, i.e. ones we can pull data on.
+
+Let's open up the one with the most number of likes.
+
+```{r}
+q <- "justin bieber"
+
+dfG <- searchGroup(q, token = fb_oauth)
+dfG <- subset(dfG, privacy == "OPEN")
+
+id <- dfG$id[1] #id of top post
+dfGroup <- getGroup(group_id = id , 
+                   token = fb_oauth,
+                   #since = '2017/01/01', 
+                   #until='2017/06/30',
+                   n = 100)
+
+dfGroup <- dfGroup[order(dfGroup$likes_count, decreasing = T), ] 
+url <- paste0("https://www.facebook.com/",dfGroup$id[1])
+browseURL(url)
+```

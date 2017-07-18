@@ -1,0 +1,190 @@
+---
+title: "Twitter Streaming API"
+author: "Ryan Wesslen"
+date: "July 18, 2017"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE)
+```
+
+## Twitter Streaming API
+
+### Authorization & Handshake
+
+For this part, we'll only need to reload our oauth token we created in the previous Twitter REST part.
+
+```{r}
+load("../data/oauth_token.Rdata")
+# load("~/Dropbox (UNC Charlotte)/summer-2017-social-media-workshops/data/oauth_token.Rdata")
+```
+
+### Using `streamR` for Twitter Streaming Data
+
+Let's call the `streamR` package. Install the package if you don't have it.
+
+```{r}
+#install.packages("streamR")
+library(streamR)
+```
+
+## Streams
+
+Recall - there are three Twitter streams:
+
+1. Filter stream: filtered by keywords or geo
+2. User stream: filtered by authenticated user (timeline or tweets)
+3. Sample stream: 1% random sample of tweets
+
+The `streamR` package has only five functions. Three are for pulling data, with each corresponding to each stream. The other two functions are for reading and parsing the data.
+
+Twitter provides some documentation on the [Streaming API](https://dev.twitter.com/streaming/overview/request-parameters)
+
+### Sample Stream
+
+Let's first grab a minute of sample data.
+
+```{r}
+sampleStream(file.name = "../data/stream/sample_stream.json", 
+             timeout = 60, # timeout in seconds
+             tweets = NULL, # max number of tweets
+             oauth = my_oauth, #oauth if saved
+             verbose = TRUE)
+```
+
+Let's examine the tweets we have.
+
+```{r}
+tweets <- parseTweets("../data/stream/sample_stream.json", simplify = FALSE)
+
+library(jsonlite)
+# tidyjson 
+t <- fromJSON(file = "../data/stream/sample_stream.json")
+```
+
+So we have a lot of data for even 60 seconds.
+
+One important point about the sample stream. 
+
+**Be cautious: this blows up in size very quickly.** One day will be 5MM+ tweets equating to multiple GB's.
+
+### Filter Stream
+
+Alternatively, we can use a list of keywords, geolocation bounding boxes, user ID's or language settings.
+
+#### Keywords
+
+Let's try a list of keywords.
+
+```{r}
+keywords <- c("#rstats")
+
+## capture 10 tweets mentioning the "Rstats" hashtag
+filterStream(file.name="../data/stream/tweets_rstats.json",
+             track=keywords, 
+             tweets=10, 
+             oauth=my_oauth )
+```
+
+#### User
+
+Let's read in a list of Twitter accounts.
+
+```{r}
+userlevel <- readr::read_csv("../data/twitter-news-accounts.csv")
+```
+
+```{r}
+## capture tweets, mention and retweets by the accounts
+filterStream(file.name="../data/stream/tweets_news.json",
+     follow=userlevel$id, 
+     timeout=60, 
+     oauth=my_oauth)
+```
+
+#### Location & Language
+
+We can also filter by location and/or language. 
+
+[Here is a website](https://dev.twitter.com/web/overview/languages) that provides the language codes available.
+
+```{r}
+## capture tweets sent from New York City in English only, and saving as an object in memory
+tweets <- filterStream(file.name="", 
+                       language="en",
+                       locations=c(-74,40,-73,41), 
+                       timeout=60, 
+                       oauth=my_oauth )
+
+points <- parseTweets(tweets) %>%
+  filter(!is.na(place_lon))
+
+library(leaflet)
+
+leaflet(points) %>%
+  addTiles() %>%
+  addCircleMarkers(lng=as.numeric(points$place_lon), 
+                   lat=as.numeric(points$place_lat), 
+                   popup = points$text, 
+                   stroke = FALSE, 
+                   fillOpacity = 0.5, 
+                   radius = 10, 
+                   clusterOptions = markerClusterOptions()
+                   )
+```
+
+Note that for the public API, there is not a bounding box size limit, which is very helpful.
+
+### User Stream
+
+Last, let's use create a list of tweets for an authenticated user (e.g., yourself).
+
+```{r}
+userStream(file.name = "../data/stream/user-stream.json",
+           with = "followings",
+           timeout = 60,
+           oauth = my_oauth)
+```
+
+You will likely not use this function much, unless you have an authenticated access to an account you want to track.
+
+## Running Indefinitely
+
+### No Timeout for Stream
+
+Last, sometimes you may want to run the Stream indefinitely. 
+
+The easiest way to do this is to set the `timeout` value to 0. However, in practice, almost always you'll lose the connection at some point.
+
+Therefore, one way to get around this is to setup a while statement to loop through your code that will automatically restart each time you lose your connection.
+
+Also, instead of keeping the files as large as possible (setting timeout to 0), let's instead set timeout as 600 to create files that are no larger than 10 minutes long. This is important as for very large datasets, distributing the data across multiple files can aid in search and it's good practice rather than aggregating all data into one large file.
+
+```{r}
+# parameters
+ids <- userlevel$twitterAccount
+stopTime <- "2017-07-18 12:15:00 EDT" # time you want to stop
+timeFile <- 600 # seconds between each file
+
+while(Sys.time() < stopTime){
+  time <- gsub("[: -]", "" , Sys.time(), perl=TRUE) #get time stamp
+  file <- paste0("../data/stream/streaming",time,".json")
+  filterStream(file.name = file, 
+               timeout = timeFile, 
+               follow = userlevel$id, 
+               oauth = my_oauth)
+}
+```
+
+### AWS for saving to S3 Bucket
+
+Instead of saving the streaming data to disk, one alternative is to using a cloud service like Amazon AWS's S3 storage.
+
+There's a handy R package [`aws.s3`](https://github.com/cloudyr/aws.s3) that provides the ability to call your personal S3 bucket. 
+
+To get started, you will need to signup for your own AWS account: https://aws.amazon.com/free/
+
+AWS has a nice 12 month free trial package that can get you started. In it, you will get 5GB of free S3 space.
+
+But please note, for long term storage, you will likely be charged (e.g., about $0.02 per GB). See [S3 Pricing](https://aws.amazon.com/s3/pricing/). But also now, AWS will also charge you for calling (requests) in addition to storage. 

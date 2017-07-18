@@ -1,0 +1,232 @@
+---
+title: "Pulling Twitter Data with REST API"
+author: "Ryan Wesslen"
+date: "July 18, 2017"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE)
+```
+
+## Twitter API's
+
+### Create Tokens
+
+1.  Go to [https://apps.twitter.com](https://apps.twitter.com) and sign in
+2.  click on "Create New App"
+3.  Fill in name, description, and website (it can be anything, even google.com. Make sure you leave 'Callback URL' empty.
+4.  Agree to user conditions
+5.  copy consumer key and consumer secret and paste below (where xxx and yyy are).
+
+
+```{r}
+library(ROAuth)
+requestURL <- "https://api.twitter.com/oauth/request_token"
+accessURL <- "https://api.twitter.com/oauth/access_token"
+authURL <- "https://api.twitter.com/oauth/authorize"
+consumerKey <- "xxx" # replace with your consumerKey
+consumerSecret <- "zzz" # replace with your consumerSecret
+
+my_oauth <- OAuthFactory$new(consumerKey=consumerKey,
+  consumerSecret=consumerSecret, requestURL=requestURL,
+  accessURL=accessURL, authURL=authURL)
+```
+
+Now, we'll need to run the handshake. 
+
+Make sure you run this in the console, not as a chunk! 
+
+You will need to authorize the handshake through a browser and provide your pin code.
+
+```{r}
+my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
+```
+
+Save this information locally so you won't need to redo this step.
+
+```{r}
+save(my_oauth, file="../data/oauth_token.RData")
+#load("../data/oauth_token.RData")
+```
+
+Last, the `twitteR` package requires a second step for authentication.
+
+```{r}
+accessToken = 'xxx'
+accessSecret = 'yyy'
+
+library(twitteR)
+setup_twitter_oauth(consumer_key=consumerKey, 
+                    consumer_secret=consumerSecret,
+                    access_token=accessToken, 
+                    access_secret=accessSecret)
+```
+
+## REST API
+
+### Keyword
+
+We'll use the keyword search through the function `searchTwitter()`.
+
+[This page](https://dev.twitter.com/rest/reference/get/search/tweets) is a helpful reference to the API.
+
+```{r}
+# basic searches by keywords
+tweets <- searchTwitter("#beer", n=20)
+
+# from a Windows machine:
+#tweets <- searchTwitter("#beer", n=20, 
+#                        cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
+```
+
+Notice that the data comes in as a list of lists, i.e. a Json file.
+
+There's a handy json to CSV converter.
+
+```{r}
+# convert to data frame
+tweets <- twListToDF(tweets)
+
+str(tweets)
+```
+
+Let's also look at the other parameters we can use for the keyword search.
+
+```{r}
+?searchTwitter
+
+# combine two terms (AND)
+tweets <- twListToDF(searchTwitter("beer+wine", n=20))
+
+# two terms: one positive (includes), one negative (excludes)
+tweets <- twListToDF(searchTwitter("trump -donald", n=20))
+
+# two terms: OR
+tweets <- twListToDF(searchTwitter("hat OR cat", n=20))
+
+# more advanced keywords
+q <- "(happy OR party) (holiday OR house) -(birthday OR democratic OR republican)"
+tweets <- twListToDF(searchTwitter(q, n=20))
+
+# only tweets to a person
+tweets <- twListToDF(searchTwitter("to:realDonaldTrump", n=20))
+
+# tweets from a person
+tweets <- twListToDF(searchTwitter("from:realDonaldTrump", n=20))
+
+# language
+tweets <- searchTwitter("beer+wine", n=20, lang="en")
+```
+
+FYI this is a helpful [Twitter guide on search](https://dev.twitter.com/rest/public/search).
+
+### Challenge
+
+Write a query that includes all of `@realDonaldTrump`'s tweets that mention `@FoxNews`.
+
+```{r}
+# add the query below
+q <- " "
+tweets <- twListToDF(searchTwitter(q, n=20))
+```
+
+Also, there are different types of "results" for the REST API. The default is a combination (mixed) while altering can get you either more recent or more popular tweets.
+
+```{r}
+# result type: recent
+tweetsRecent <- twListToDF(searchTwitter("beer+wine", n=20, resultType = "recent"))
+# result type: mixed (default)
+tweetsMixed <- twListToDF(searchTwitter("beer+wine", n=20, resultType = "mixed"))
+# result type: popular
+tweetsPopular <- twListToDF(searchTwitter("beer+wine", n=20, resultType = "popular"))
+```
+
+We can also query by geolocation. Let's use a package called `leaflet` to build an interactive map of these tweets.
+
+```{r}
+tweets <- searchTwitter('beer', n = 1000, geocode='35.227085,-80.843124,10mi')
+tweets <- twListToDF(tweets)
+
+library(leaflet)
+points <- subset(tweets, !is.na(longitude))
+
+leaflet(points) %>%
+  addTiles() %>%
+  addCircleMarkers(lng=as.numeric(points$longitude), 
+                   lat=as.numeric(points$latitude), 
+                   popup = points$text, 
+                   stroke = FALSE, 
+                   fillOpacity = 0.5, 
+                   radius = 10, 
+                   clusterOptions = markerClusterOptions()
+                   )
+```
+
+
+### Time
+
+The `created` field (post time) is in GMT time (+4 hours ahead of Eastern Time in the summer). You must convert to Eastern time.
+
+```{r}
+library(tidyverse)
+
+# use tz function from lubridate via tidyverse
+tz(tweets$created)
+
+# convert to Eastern
+tz(tweets$created) <- "America/New_York"
+
+# check that conversion occured
+tz(tweets$created)
+```
+
+#### User
+
+```{r}
+# profile information
+user <- getUser('realDonaldTrump')
+
+trump <- userTimeline("realDonaldTrump", 
+                      n = 3000, # can choose up to 3,200 
+                      includeRts = TRUE, 
+                      excludeReplies = FALSE)
+
+# convert to DF
+trump <- twListToDF(trump)
+```
+
+Let's use `tidytext` and `tidyverse` to begin exploring the words.
+
+```{r}
+library(tidytext) # tidytext
+library(wordcloud) # word cloud
+
+data("stop_words") # create a list of stop words
+
+trump_text <- trump %>%
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words) %>%
+  count(word, sort = TRUE) %>%
+  with(wordcloud(word, n, max.words = 100))
+```
+
+#### Trends
+
+```{r}
+# find the closest Trend Location
+location <- closestTrendLocations(35.227085,-80.843124)
+
+# get the trending topics
+cltTrends <- getTrends(location$woeid)
+
+# get the trending topics but exclude a specific hashtag
+getTrends(location$woeid, exclude = "#trump")
+```
+
+#### Rate Limits
+
+```{r}
+getCurRateLimitInfo()
+```
+
