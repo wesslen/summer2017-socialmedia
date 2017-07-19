@@ -31,15 +31,16 @@ Many of the tools were created by political scientists and therefore most exampl
 
 | Day 2: Thur July 20 | Querying, Handling and Visualizing Social Media Data    |
 | ------------------- | ------------------------------------------------------- |
-| Lecture             | [Data Management for Social Media](./slides/data-management.pdf)          |
-| Hands On Tutorial   | [Querying Twitter Data](./day2/querying.Rmd) |
-| Hands On Tutorial   | [Data Overview](./day2/overview.Rmd) |
-| Hands On Tutorial   | [Visualizing using HTMLWidgets & Flexdashboard](./day2/visualization.Rmd) |
+| Hands On Tutorial   | [Data Management from Twitter Streaming API](./day2/streaming-data.Rmd) [HTML]() |
+| Hands On Tutorial   | [Querying Twitter Data](./day2/twitter-querying.Rmd) [HTML]() |
+| Hands On Tutorial   | [Twitter Social Networks](./day2/twitter-social-networks.Rmd) [HTML]()|
+| Hands On Tutorial   | [Twitter Followers](./day2/twitter-followers.Rmd) |
 
 | Day 3: Thur July 27 | Text as data: Analyzing Social Media Content            |
 | ------------------- | ------------------------------------------------------- |
 | Lecture             | [Text as Data for Social Media]()                       |
-| Case Study          | [TBD]()|
+| Case Study          | [TBD]() |
+| Optional            | [Emoji Sentiment Analysis](./day3/emoji-sentiment.Rmd) [HTML]() |
 
 ## Setup and Preparation
 
@@ -62,7 +63,8 @@ Also, please install these packages by running this code:
 
 ```{r}
 packages <- c("tidyverse","Rfacebook","twitteR","streamR","rmarkdown","devtools",
-              "quanteda","stm","tidytext","tidyr","wordcloud","reshape2")
+              "quanteda","stm","tidytext","tidyr","wordcloud","reshape2",
+              "rvest","Unicode","pairsD3","stringr","igraph","edgebundleR")
 
 install.packages(packages)
 ```

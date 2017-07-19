@@ -1,0 +1,348 @@
+{
+  "created_at": "Tue Jul 18 17:44:45 +0000 2017",
+  "id": 8.8736755205727e+17,
+  "id_str": "887367552057266177",
+  "text": "RT @ItsGoTQuote: Lyanna is the best \ud83d\ude2d #GameofThrones https:\/\/t.co\/G2SWQnqkuu",
+  "source": "<a href=\"http:\/\/twitter.com\/download\/iphone\" rel=\"nofollow\">Twitter for iPhone<\/a>",
+  "truncated": false,
+  "in_reply_to_status_id": null,
+  "in_reply_to_status_id_str": null,
+  "in_reply_to_user_id": null,
+  "in_reply_to_user_id_str": null,
+  "in_reply_to_screen_name": null,
+  "user": {
+    "id": 196119822,
+    "id_str": "196119822",
+    "name": "A girl has no name.",
+    "screen_name": "youknowsNOTHING",
+    "location": "\ud83c\udf0f",
+    "url": null,
+    "description": "a girl born to go abroad. \ud83c\udf28",
+    "protected": false,
+    "verified": false,
+    "followers_count": 176,
+    "friends_count": 277,
+    "listed_count": 6,
+    "favourites_count": 225,
+    "statuses_count": 21429,
+    "created_at": "Tue Sep 28 11:32:03 +0000 2010",
+    "utc_offset": 25200,
+    "time_zone": "Hanoi",
+    "geo_enabled": true,
+    "lang": "th",
+    "contributors_enabled": false,
+    "is_translator": false,
+    "profile_background_color": "9266CC",
+    "profile_background_image_url": "http:\/\/pbs.twimg.com\/profile_background_images\/597388784502616064\/y-qMf59t.png",
+    "profile_background_image_url_https": "https:\/\/pbs.twimg.com\/profile_background_images\/597388784502616064\/y-qMf59t.png",
+    "profile_background_tile": true,
+    "profile_link_color": "9006CC",
+    "profile_sidebar_border_color": "FFFFFF",
+    "profile_sidebar_fill_color": "E5DDF0",
+    "profile_text_color": "3017EB",
+    "profile_use_background_image": true,
+    "profile_image_url": "http:\/\/pbs.twimg.com\/profile_images\/887367177044508672\/t1FnBJiF_normal.jpg",
+    "profile_image_url_https": "https:\/\/pbs.twimg.com\/profile_images\/887367177044508672\/t1FnBJiF_normal.jpg",
+    "profile_banner_url": "https:\/\/pbs.twimg.com\/profile_banners\/196119822\/1483343150",
+    "default_profile": false,
+    "default_profile_image": false,
+    "following": null,
+    "follow_request_sent": null,
+    "notifications": null
+  },
+  "geo": null,
+  "coordinates": null,
+  "place": null,
+  "contributors": null,
+  "retweeted_status": {
+    "created_at": "Tue Jul 18 01:03:42 +0000 2017",
+    "id": 8.8711562980268e+17,
+    "id_str": "887115629802684416",
+    "text": "Lyanna is the best \ud83d\ude2d #GameofThrones https:\/\/t.co\/G2SWQnqkuu",
+    "display_text_range": [
+      0,
+      35
+    ],
+    "source": "<a href=\"http:\/\/twitter.com\/download\/iphone\" rel=\"nofollow\">Twitter for iPhone<\/a>",
+    "truncated": false,
+    "in_reply_to_status_id": null,
+    "in_reply_to_status_id_str": null,
+    "in_reply_to_user_id": null,
+    "in_reply_to_user_id_str": null,
+    "in_reply_to_screen_name": null,
+    "user": {
+      "id": 8.4964221566423e+17,
+      "id_str": "849642215664230400",
+      "name": "Game of Thrones",
+      "screen_name": "ItsGoTQuote",
+      "location": null,
+      "url": null,
+      "description": "You either win, or you die. *parody account* itsgotquote@hotmail.com",
+      "protected": false,
+      "verified": false,
+      "followers_count": 92400,
+      "friends_count": 7,
+      "listed_count": 26,
+      "favourites_count": 4,
+      "statuses_count": 201,
+      "created_at": "Wed Apr 05 15:17:44 +0000 2017",
+      "utc_offset": -25200,
+      "time_zone": "Pacific Time (US & Canada)",
+      "geo_enabled": false,
+      "lang": "en",
+      "contributors_enabled": false,
+      "is_translator": false,
+      "profile_background_color": "F5F8FA",
+      "profile_background_image_url": "",
+      "profile_background_image_url_https": "",
+      "profile_background_tile": false,
+      "profile_link_color": "1DA1F2",
+      "profile_sidebar_border_color": "C0DEED",
+      "profile_sidebar_fill_color": "DDEEF6",
+      "profile_text_color": "333333",
+      "profile_use_background_image": true,
+      "profile_image_url": "http:\/\/pbs.twimg.com\/profile_images\/864151180271865857\/q_YT1crW_normal.jpg",
+      "profile_image_url_https": "https:\/\/pbs.twimg.com\/profile_images\/864151180271865857\/q_YT1crW_normal.jpg",
+      "profile_banner_url": "https:\/\/pbs.twimg.com\/profile_banners\/849642215664230400\/1494864794",
+      "default_profile": true,
+      "default_profile_image": false,
+      "following": null,
+      "follow_request_sent": null,
+      "notifications": null
+    },
+    "geo": null,
+    "coordinates": null,
+    "place": null,
+    "contributors": null,
+    "is_quote_status": false,
+    "retweet_count": 989,
+    "favorite_count": 1699,
+    "entities": {
+      "hashtags": [
+        {
+          "text": "GameofThrones",
+          "indices": [
+            21,
+            35
+          ]
+        }
+      ],
+      "urls": [
+        
+      ],
+      "user_mentions": [
+        
+      ],
+      "symbols": [
+        
+      ],
+      "media": [
+        {
+          "id": 8.8711561909468e+17,
+          "id_str": "887115619094679556",
+          "indices": [
+            36,
+            59
+          ],
+          "media_url": "http:\/\/pbs.twimg.com\/media\/DE-q9JbW0AQfLBr.jpg",
+          "media_url_https": "https:\/\/pbs.twimg.com\/media\/DE-q9JbW0AQfLBr.jpg",
+          "url": "https:\/\/t.co\/G2SWQnqkuu",
+          "display_url": "pic.twitter.com\/G2SWQnqkuu",
+          "expanded_url": "https:\/\/twitter.com\/ItsGoTQuote\/status\/887115629802684416\/photo\/1",
+          "type": "photo",
+          "sizes": {
+            "small": {
+              "w": 680,
+              "h": 671,
+              "resize": "fit"
+            },
+            "thumb": {
+              "w": 150,
+              "h": 150,
+              "resize": "crop"
+            },
+            "large": {
+              "w": 750,
+              "h": 740,
+              "resize": "fit"
+            },
+            "medium": {
+              "w": 750,
+              "h": 740,
+              "resize": "fit"
+            }
+          }
+        }
+      ]
+    },
+    "extended_entities": {
+      "media": [
+        {
+          "id": 8.8711561909468e+17,
+          "id_str": "887115619094679556",
+          "indices": [
+            36,
+            59
+          ],
+          "media_url": "http:\/\/pbs.twimg.com\/media\/DE-q9JbW0AQfLBr.jpg",
+          "media_url_https": "https:\/\/pbs.twimg.com\/media\/DE-q9JbW0AQfLBr.jpg",
+          "url": "https:\/\/t.co\/G2SWQnqkuu",
+          "display_url": "pic.twitter.com\/G2SWQnqkuu",
+          "expanded_url": "https:\/\/twitter.com\/ItsGoTQuote\/status\/887115629802684416\/photo\/1",
+          "type": "photo",
+          "sizes": {
+            "small": {
+              "w": 680,
+              "h": 671,
+              "resize": "fit"
+            },
+            "thumb": {
+              "w": 150,
+              "h": 150,
+              "resize": "crop"
+            },
+            "large": {
+              "w": 750,
+              "h": 740,
+              "resize": "fit"
+            },
+            "medium": {
+              "w": 750,
+              "h": 740,
+              "resize": "fit"
+            }
+          }
+        }
+      ]
+    },
+    "favorited": false,
+    "retweeted": false,
+    "possibly_sensitive": false,
+    "filter_level": "low",
+    "lang": "en"
+  },
+  "is_quote_status": false,
+  "retweet_count": 0,
+  "favorite_count": 0,
+  "entities": {
+    "hashtags": [
+      {
+        "text": "GameofThrones",
+        "indices": [
+          38,
+          52
+        ]
+      }
+    ],
+    "urls": [
+      
+    ],
+    "user_mentions": [
+      {
+        "screen_name": "ItsGoTQuote",
+        "name": "Game of Thrones",
+        "id": 8.4964221566423e+17,
+        "id_str": "849642215664230400",
+        "indices": [
+          3,
+          15
+        ]
+      }
+    ],
+    "symbols": [
+      
+    ],
+    "media": [
+      {
+        "id": 8.8711561909468e+17,
+        "id_str": "887115619094679556",
+        "indices": [
+          53,
+          76
+        ],
+        "media_url": "http:\/\/pbs.twimg.com\/media\/DE-q9JbW0AQfLBr.jpg",
+        "media_url_https": "https:\/\/pbs.twimg.com\/media\/DE-q9JbW0AQfLBr.jpg",
+        "url": "https:\/\/t.co\/G2SWQnqkuu",
+        "display_url": "pic.twitter.com\/G2SWQnqkuu",
+        "expanded_url": "https:\/\/twitter.com\/ItsGoTQuote\/status\/887115629802684416\/photo\/1",
+        "type": "photo",
+        "sizes": {
+          "small": {
+            "w": 680,
+            "h": 671,
+            "resize": "fit"
+          },
+          "thumb": {
+            "w": 150,
+            "h": 150,
+            "resize": "crop"
+          },
+          "large": {
+            "w": 750,
+            "h": 740,
+            "resize": "fit"
+          },
+          "medium": {
+            "w": 750,
+            "h": 740,
+            "resize": "fit"
+          }
+        },
+        "source_status_id": 8.8711562980268e+17,
+        "source_status_id_str": "887115629802684416",
+        "source_user_id": 8.4964221566423e+17,
+        "source_user_id_str": "849642215664230400"
+      }
+    ]
+  },
+  "extended_entities": {
+    "media": [
+      {
+        "id": 8.8711561909468e+17,
+        "id_str": "887115619094679556",
+        "indices": [
+          53,
+          76
+        ],
+        "media_url": "http:\/\/pbs.twimg.com\/media\/DE-q9JbW0AQfLBr.jpg",
+        "media_url_https": "https:\/\/pbs.twimg.com\/media\/DE-q9JbW0AQfLBr.jpg",
+        "url": "https:\/\/t.co\/G2SWQnqkuu",
+        "display_url": "pic.twitter.com\/G2SWQnqkuu",
+        "expanded_url": "https:\/\/twitter.com\/ItsGoTQuote\/status\/887115629802684416\/photo\/1",
+        "type": "photo",
+        "sizes": {
+          "small": {
+            "w": 680,
+            "h": 671,
+            "resize": "fit"
+          },
+          "thumb": {
+            "w": 150,
+            "h": 150,
+            "resize": "crop"
+          },
+          "large": {
+            "w": 750,
+            "h": 740,
+            "resize": "fit"
+          },
+          "medium": {
+            "w": 750,
+            "h": 740,
+            "resize": "fit"
+          }
+        },
+        "source_status_id": 8.8711562980268e+17,
+        "source_status_id_str": "887115629802684416",
+        "source_user_id": 8.4964221566423e+17,
+        "source_user_id_str": "849642215664230400"
+      }
+    ]
+  },
+  "favorited": false,
+  "retweeted": false,
+  "possibly_sensitive": false,
+  "filter_level": "low",
+  "lang": "en",
+  "timestamp_ms": "1500399885559"
+}

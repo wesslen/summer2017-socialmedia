@@ -1,0 +1,170 @@
+---
+title: "Twitter Social Networks"
+author: "Ryan Wesslen"
+date: July 20, 2017"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+## Retweet Network
+
+### Loading JSON file
+
+```{r warning=FALSE}
+#install.packages(streamR)
+library(streamR); library(tidyverse)
+
+file <- "../data/stream/stream_got.json"
+#file <- "~/Dropbox (UNC Charlotte)/summer-2017-social-media-workshop/data/stream/stream_got.json"
+
+#?parseTweets
+tweets <- parseTweets(tweets = file)
+```
+
+### Creating a Retweet Network
+
+In this example, we'll create a retweet network. This snippet of code was from [Pablo Barbera](https://github.com/pablobarbera/big-data-upf/blob/master/02d-twitter-streaming-data-collection.Rmd), who created the `streamR` package and who has phenomenal R materials for analyzing Twitter (highly recommend his GitHub!).
+
+```{r}
+library(igraph)
+
+# regular expression -- get only tweets that have "RT @"
+rts <- tweets[grep("RT @", tweets$text),]
+
+edges <- data.frame(
+  node1 = rts$screen_name,
+  node2 = gsub('.*RT @([a-zA-Z0-9_]+):? ?.*', rts$text, repl="\\1"),
+  stringsAsFactors=F
+)
+
+g <- graph_from_data_frame(d=edges, directed=TRUE)
+```
+
+Now we have a network as a `igraph` object g.
+
+Let's run some basic network stats, e.g. find total number of connections.
+
+```{r}
+degTotal <- degree(g, mode = "total")
+degTotal <- degTotal[order(degTotal, decreasing = T)]
+
+head(degTotal, n = 10)
+```
+
+Alternatively, since this is a directed network, we can find who did the most retweets (i.e., retweeted others).
+
+```{r}
+degOut <- degree(g, mode = "out")
+degOut <- degOut[order(degOut, decreasing = T)]
+
+head(degOut, n = 10)
+```
+
+Remember -- our dataset was only for 10 mins. So those people did a lot of #gameofthrones retweets in only 10 minutes.
+
+Further, we can find who was retweeted the most.
+
+```{r}
+degIn <- degree(g, mode = "in")
+degIn <- degIn[order(degIn, decreasing = T)]
+
+head(degIn, n = 10)
+```
+
+Let's instead observe the network using `visNetwork`, a [HTMLWidget](http://gallery.htmlwidgets.org)
+
+```{r}
+library(visNetwork)
+
+V(g)$size <- 10
+
+visIgraph(g) %>% 
+  visInteraction(navigationButtons = TRUE) 
+```
+
+However, things are a bit "squished" together. An important property of social networks is to alter the layout.
+
+For example, we can set a property to add in "physics".
+
+```{r}
+visIgraph(g) %>% 
+  visInteraction(navigationButtons = TRUE) %>%
+  visIgraphLayout("physics" = TRUE)
+```
+
+We can also change the size of the nodes to correspond to the number of (total) degrees.
+
+```{r}
+V(g)$size <- log(degTotal) +1
+
+visIgraph(g) %>% 
+  visInteraction(navigationButtons = TRUE) %>%
+  visIgraphLayout("physics" = TRUE)
+```
+
+Just for fun, we can use another HTMLWidget [edgebundler](https://github.com/garthtarr/edgebundleR) to create a different type of network.
+
+```{r results='asis'}
+#install.packages("edgebundleR")
+library(edgebundleR)
+
+edgebundle(g, fontsize = 6, directed = TRUE)
+```
+
+There are a TON of other ways to customize networks. I **strongly** recommend users who are interested in analyzing social networks to check out Katya Ognyanova's [phenomenal network tutorial](http://kateto.net/network-visualization) for a wider range of options.
+
+## Challenge: Creating other Network
+
+### Reply Network (Easy)
+
+For this challenge, you'll need to create a reply network.
+
+For this, you'll need to use similar code in rows 111-117. However, instead of focusing on the RT's, you'll simply need to create the edge list from two fields: `screen_name` (from) and `in_reply_to_screen_name`.
+
+Like the RT example, you need to first create a subset of the tweets to only include tweets that include a reply. You can use the `subset` function (type ?subset to look it up) along with the is.na() function to identify only tweets that have a reply. Make sure to take the "negation" (!) of the is.na function.
+
+See the attached R code (challenge-solution.R) for the solution.
+
+```{r}
+## write your response here
+
+```
+
+### Mention Networks (Hard/just FYI)
+
+If you're able to complete the first task, try to run this code for a mention network
+
+Code from this section is from cosmopolitanvan's [RPubs tutorial](https://rpubs.com/cosmopolitanvan/twitternetworks), which is another great resource.
+
+```{r warning=FALSE}
+# regular expression -- get only tweets that have "@" (i.e., mention)
+mention <- tweets[grep("@", tweets$text),]
+
+names <- lapply(mention$text, function(tx) {
+    matches = gregexpr('@[^([:blank:]|[:punct:])]+', tx)[[1]]
+    sapply(seq_along(matches), function(i) 
+      substr(tx, matches[i] + 1, matches[i] + attr(matches, 'match.length')[i] - 1))
+  })
+
+edges3 = 
+  lapply(seq_along(mention$text), function(i) {
+    if(names[[i]] == '')  
+      return(NULL)
+    lapply(names[[i]], function(m)
+      c(node1 = as.character(mention$screen_name[i]), node2 = m)) %>%
+      do.call(rbind, .) %>% as.data.frame()
+  }) %>% 
+  do.call(rbind, .) %>%
+  count(tolower(node1), tolower(node2))
+
+g3 <- graph_from_data_frame(d = edges3, directed = T)
+
+V(g3)$size <- 10
+
+visIgraph(g3) %>% 
+  visInteraction(navigationButtons = TRUE) %>%
+  visIgraphLayout("physics" = TRUE)
+```

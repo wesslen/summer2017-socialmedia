@@ -1,0 +1,327 @@
+---
+title: "Streaming API Data"
+author: "Ryan Wesslen"
+date: "July 20, 2017"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+## Analyzing Data from StreamR Package
+
+In my [previous material](https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day1/twitter-streaming.Rmd) to use `streamR`(i.e., Twitter's Streaming API), I was able to pull a dataset of sample tweets.
+
+I've saved a dataset that is in the data folder. The dataset pulled 10 minutes of tweets that include the hashtag #gameofthrones.
+
+### Data Formatting
+
+#### Loading JSON file
+
+```{r warning=FALSE}
+#install.packages(streamR)
+library(streamR)
+
+file <- "../data/stream/stream_got.json"
+# file <- "~/Dropbox (UNC Charlotte)/summer-2017-social-media-workshop/data/stream/stream_got.json"
+
+#?parseTweets
+tweets <- parseTweets(tweets = file)
+```
+
+#### Cleaning Text
+
+Do you notice any weird characters? If so, then you have an encoding issues. Not all computers will have this. I found this with my Mac but did this issue with my Ubuntu (Linux) machine.
+
+This is an [encoding problem](https://stackoverflow.com/questions/37999896/twitter-emoji-encoding-problems-with-twitter-and-r), especially with handling emojis.
+
+We can run a function to convert these characters.
+
+Let's run this on four text fields: 
+
+1. the body of the tweet ("text")
+
+2. the profile location ("location")
+
+3. the profile summary ("description")
+
+4. the handle name ("name")
+
+```{r warning=FALSE}
+tweets$text <- iconv(tweets$text, from="UTF-8", to="ASCII", "byte")
+tweets$location <- iconv(tweets$location, from="UTF-8", to="ASCII", "byte")
+tweets$description <- iconv(tweets$description, from="UTF-8", to="ASCII", "byte")
+tweets$name <- iconv(tweets$name, from="UTF-8", to="ASCII", "byte")
+```
+
+Notice that emojis are coded as unicode. You can see a lookup of codes [here](https://apps.timwhitlock.info/emoji/tables/unicode).
+
+#### Special Character Cleanup
+
+For now, we're going to exclude all non-standard characters. However, I've created code for a simple emoji sentiment.
+
+We can use [regular expressions](https://en.wikipedia.org/wiki/Regular_expression) to find unique patterns.
+
+```{r}
+library(stringr)
+
+# removes urls, &amp, RT, etc.
+tweets$cleanText <- str_replace_all(tweets$text, "https://t.co/[A-Za-z\\d]+|http://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https", "")
+
+# remove emoji (tags)
+tweets$cleanText <- gsub("<.*?>", "", tweets$cleanText)
+
+# remove next line character "\n"
+tweets$cleanText <- gsub("\n", "", tweets$cleanText)
+```
+
+For example, let's use the simple `grep` expression to find how many tweets that mention "Daenerys""
+
+```{r}
+length(grep("Daenerys", tweets$cleanText, ignore.case=TRUE))
+```
+
+#### Hashtag and Mention Counts
+
+Alternatively, we can use a slightly more complicated regular expression to find all hashtags.
+
+```{r}
+ht <- str_extract_all(tweets$cleanText, "#(\\d|\\w)+")
+ht <- unlist(ht)
+head(sort(table(ht), decreasing = TRUE), n = 10)
+```
+
+We can also do the same thing for mentions (@)
+
+```{r}
+mt <- str_extract_all(tweets$cleanText, "@(\\d|\\w)+")
+mt <- unlist(mt)
+head(sort(table(mt), decreasing = TRUE), n = 10)
+```
+
+#### Exploring the Data Attributes
+
+In this dataset, we have 43 attributes that are on the tweet-level.
+
+One way to explore the data is to use the `str` function.
+
+```{r}
+str(tweets)
+```
+
+#### Geolocation & TimeZone
+
+Recall from yesterday's talk, there are three main types of geolocation data:
+
+1. Points (lat/long)
+
+2. Places/Polygons (lat/long bounding boxes)
+
+3. Profile Location Description
+
+Let's see how many points we have in our dataset.
+
+```{r}
+ sum(!is.na(tweets$lat))
+```
+
+So we have only 1 tweet out of 1,342 that has a point lat/long.
+
+What about place/polygon?
+
+```{r}
+sum(!is.na(tweets$place_lat))
+```
+
+We have 19. So in total, only about 1.49% of these tweets have geolocation -- very similar to what we discussed yesterday (only 1-2.9% of tweets have geolocation).
+
+What about profile location?
+
+```{r}
+loc <- table(tweets$location)
+head(loc[order(loc, decreasing = T)],n=10)
+```
+
+What do you notice? This is an open-ended string (can be a Twitter place/polygon) so while some people provide clean results (e.g., Idaho, Los Angeles) others are vague (e.g., USA, usa) while even others are meaningless ("Any run, Any time, Any where"). 
+
+Just for curiosity, let's see how many of our tweets have missing profile location (i.e., nothing).
+
+```{r}
+sum(is.na(tweets$location))
+```
+
+347 tweets or about 25%. 
+
+**Advanced** If you're interested in a creating a large-scale machine learning algorithm to predict missing locations, check out [my blog post](https://wesslen.github.io/twitter/predicting_twitter_profile_location_with_pyspark/) using PySpark to predict missing profile locations.
+
+You may notice in the dataset that there's also timezone. Let's look at the top 20 time zones.
+
+```{r}
+tz <- table(tweets$time_zone)
+head(tz[order(tz, decreasing = T)],n=10)
+```
+
+Also, there's a field that shows whether users have enabled the possibility of geolocation.
+
+```{r}
+table(tweets$geo_enabled)
+```
+
+This simply means that the user can provide geolocation. As you can see, most do not have this feature enabled.
+
+#### User Level Attributes: Handle, Name and Profile Description
+
+There's also several fields that are "snapshots" of the user at the time of the tweet. These fields can change at any time and only provide information about what the user's information was at the time of the tweet.
+
+One of the first most important things to remember about users is that there are two ways to identify each user:
+
+1. By their user id (sometimes called actor.id)
+
+2. By their handle (screen_name)
+
+An important note is that the user id cannot change while the handle can! In our dataset, given we only have a 10 minute sample, this won't be a big deal. However, it's important to know this when considering combining large, long time range data.
+
+Let's explore which users have the most tweets `dplyr`, which is part of the `tidyverse` package.
+
+```{r}
+library(tidyverse)
+
+aggTweets <- tweets %>%
+  group_by(screen_name, name, user_id_str) %>%
+  summarise(Count=n()) %>%
+  arrange(desc(Count))
+
+head(aggTweets[,c("screen_name","Count")], n = 10)
+```
+
+Let's now clean the user profile summary.
+
+For this, we'll introduce [`quanteda`](http://quanteda.io/articles/quickstart.html), which is the **best** (in my humble opinion) text analysis package in R. (Sorry, `tidytext`, which wins for the easiest text analysis package.)
+
+```{r warning=FALSE}
+tweets$description <- gsub("<.*?>", "", tweets$description)
+
+#install.packages("quanteda")
+library(quanteda)
+
+profileCorpus <- corpus(tweets$description)
+
+mydfm <- dfm(profileCorpus, 
+             remove = c("na","y","https","http","t.co","de","en","n",stopwords("english")),
+             remove_punct = TRUE,
+             remove_numbers = TRUE,
+             remove_symbols = TRUE)
+
+textplot_wordcloud(mydfm, 
+                   min.freq = 6, 
+                   random.order = FALSE,
+                   rot.per = .25, 
+                   colors = RColorBrewer::brewer.pal(8,"Dark2"))
+```
+
+There seems to be some discrepancies. Perhaps we're getting some discrepancies because of other languages.
+
+Let's see how many users have different language settings on their profile.
+
+```{r}
+userLang <- table(tweets$user_lang)
+userLang <- userLang[order(userLang, decreasing = TRUE)]
+head(userLang, n = 10)
+```
+
+Let's keep only the top three languages: English (en), Spanish (es), French (fr).
+
+We can then do a "comparison" plot by using quanteda's group function.
+
+```{r warning=FALSE}
+profileCorpus <- corpus(tweets$description,
+                        docvars = data.frame(user_lang = tweets$user_lang))
+
+# keep only users who are in English, Spanish or French
+profileCorpus <- corpus_subset(profileCorpus, 
+                               user_lang %in% c("en","es","fr"))
+
+mydfm <- dfm(profileCorpus, 
+             groups = "user_lang",
+             remove = c("na","y","https","http","t.co","de","en","n",
+                        stopwords("english"), stopwords("french"), stopwords("spanish")),
+             remove_punct = TRUE,
+             remove_numbers = TRUE,
+             remove_symbols = TRUE)
+
+textplot_wordcloud(mydfm, 
+                   comparison = TRUE,
+                   min.freq = 6, 
+                   random.order = FALSE,
+                   rot.per = 0, 
+                   colors = RColorBrewer::brewer.pal(8,"Dark2"))
+```
+
+We'll use `quanteda` again in another section as well as next Thursday for our Text-as-Data workshop.
+
+> Challenge: Analyzing the Tweet Text with `quanteda`
+
+Now that we've introduced `quanteda`, reuse the code above but replace the profile description column with the tweet text (text) field.
+
+You should be able to rerun the above analysis with only one small change. You can use the raw text (text) given the `dfm` mimics a lot of the cleaning we did for the cleanText field. 
+
+If you're interested in more pre-processing parameters, consider ?tokens like `stem` or `ngrams`.
+
+```{r}
+# write your response here
+
+```
+
+#### User Level Numeric Attributes: Friends, Followers, Statuses, Favorites, and Lists
+
+Last, there are five numeric attributes for each user.
+
+Let's use a neat HTMLWidget [pairsD3](https://github.com/garthtarr/pairsD3) to run an interactive scatterplot matrix. 
+
+Honestly, this may not be the best way of representing this data (e.g. need to be log scaled given power law qualities) but it's a fun and easy way to do so.
+
+```{r fig.height=6}
+col <- c("friends_count",
+         "followers_count",
+         "statuses_count",
+         "favourites_count",
+         "listed_count")
+
+#install.packages("pairsD3")
+library(pairsD3)
+
+pairsD3(tweets[,col], 
+        group = ifelse(tweets$user_lang=="en","English","Non-English"),
+        tooltip = paste0(tweets$screen_name,"\n",tweets$user_lang))
+```
+
+#### Time
+
+One problem is the time (created_at) field. The original data comes in as GMT time but we can convert it to Eastern standard time.
+
+We can then reduce it to only mins and count by each minute.
+
+```{r}
+tweets$cleanTime <- strptime(tweets$created_at,"%a %b %d %H:%M:%S %z %Y", tz="America/New_York")
+
+by.mins <- cut.POSIXt(tweets$cleanTime,"mins")
+t <- as.data.frame(table(by.mins), stringsAsFactors = F)
+
+t$by.mins <- as.POSIXct(t$by.mins)
+```
+
+Note that since I used the streaming API, these were captured across a narrow 10 minute window.
+
+However, we can visualize them using the [`ggplot2`](http://ggplot2.tidyverse.org/) package.
+
+```{r}
+ggplot(t, aes(x = by.mins, y = Freq)) + 
+  geom_line() + 
+  xlab("Minutes") +
+  ylab("Tweet Count")
+```
+
+There are other great R time series visualization packages like ['dygraphs'](https://rstudio.github.io/dygraphs/) or ['streamgraph'](https://hrbrmstr.github.io/streamgraph/).
+
+I've created a [visualization demo](https://rpubs.com/ryanwesslen/242027) of these for a sample of Twitter data.

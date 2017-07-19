@@ -1,0 +1,91 @@
+---
+title: "Pulling Twitter Followers"
+author: "Ryan Wesslen"
+date: "July 20, 2017"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE, eval = FALSE)
+```
+
+## Load packages and credentials
+
+```{r}
+#devtools::install_github("pablobarbera/twitter_ideology/pkg/tweetscores")
+library(twitteR); library(tweetscores)
+```
+
+### Initialize the dataset
+
+```{r}
+#initialize our dataset
+beer.followers <- data.frame(
+  id_str=character(),
+  screen_name=character(),
+  name=character(),
+  description=character(),
+  followers_count=integer(),
+  statuses_count=integer(),
+  friends_count=integer(),
+  created_at=character(),
+  location=character()
+)
+```
+
+```{r}
+credentials <- "~/Dropbox (UNC Charlotte)/credentials/oauth_token.Rdata"
+
+brewery <- "LegionBrewing"
+
+breweryInfo <- getUsersBatch(screen_names = brewery, 
+                            oauth_folder = credentials)
+
+#lookupUsers(brewery, includeNA=TRUE)
+
+followers <- getFollowers(screen_name = brewery,
+     oauth_folder=credentials,
+     cursor = -1, user_id = NULL, verbose = TRUE, sleep = 1)
+
+userdata <- getUsersBatch(ids=followers,
+     oauth_folder=credentials)
+
+userdata$brewery <- brewery
+userdata$time_stamp <- format(Sys.time(), "%a %b %d %X %Y")
+
+beer.followers <- userdata
+```
+
+Now, we can replicate this but instead loop across many other breweries.
+
+In this case, we have a range of different sized groups.
+
+```{r}
+names <- c("NoDaBrewing","NCBeerTemple","oldemeckbrew","BirdsongBrewing","UnknownBrewing","TripleCBrew","SaludNODA",
+           "craftgrowler","sugarcreekbrew","WoodenRobotAle","goodbottleco","SycamoreBrewing","LegionBrewing",
+           "D9Brewing","HeistBrewery","LennyBoyBrew")
+
+breweryAll <- getUsersBatch(screen_names = names, 
+                            oauth_folder = credentials)
+```
+
+Looping over the users to get all of the breweries' followers. Note this will take 2.5+ hours (maybe longer).
+
+```{r}
+for (i in names){
+  print(i)
+  
+  # get followers
+  followers <- getFollowers(screen_name = names[1],
+     oauth_folder=credentials,
+     cursor = -1, user_id = NULL, verbose = TRUE, sleep = 1)
+  
+  #Batch mode - get User ID info (ID, name, description, etc)
+   userdata <- getUsersBatch(ids=followers,
+     oauth_folder=credentials)
+  
+  userdata$brewery <- i
+  userdata$time_stamp <- format(Sys.time(), "%a %b %d %X %Y")
+  beer.followers <- rbind(beer.followers, userdata)
+}
+```

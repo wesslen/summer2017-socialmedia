@@ -1,0 +1,111 @@
+---
+title: "Emoji Sentiment Analysis"
+author: "Ryan Wesslen"
+date: "July 20, 2017"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+## Emoji Analysis 
+
+This analysis is based on a [blog post](http://opiateforthemass.es/articles/emoji-analysis/) and [code](https://github.com/today-is-a-good-day/emojis/blob/master/emoji_analysis.R) by Jessica Peterka-Bonetta.
+
+I only made small customizations in the code.
+
+### Load the dataset
+
+First, let's reload our dataset.
+
+```{r warning=FALSE}
+#install.packages(streamR)
+library(streamR)
+
+file <- "../data/stream/stream_got.json"
+# file <- "~/Dropbox (UNC Charlotte)/summer-2017-social-media-workshop/data/stream/stream_got.json"
+
+#?parseTweets
+tweets <- parseTweets(tweets = file)
+
+tweets$text <- iconv(tweets$text, from="UTF-8", to="ASCII", "byte")
+```
+
+Next, let's create a dictionary for all of the emojis.
+
+```{r warning=FALSE}
+library(tidyverse); library(stringr); library(Unicode)
+
+source("./emoji_functions.R")
+emoji_file = "../data/emojis.csv"
+
+emDict <- readr::read_delim(file = emoji_file, delim = ";")
+
+emDict <- emDict %>%
+  mutate(description = tolower(EN)) %>%
+  mutate(unicode = as.u_char(unicode))
+```
+
+Then, let's match the emojis to count the most used emojis.
+
+```{r}
+#helper functions
+matchto <- emDict$ftu8
+description <- emDict$EN
+
+rank <- emojis_matching(tweets$text, matchto, description) %>% 
+  group_by(description) %>% 
+  summarise(n = sum(count)) %>%
+  arrange(-n)
+
+head(rank, n = 10)
+```
+
+### Emoji Sentiment Analysis
+
+We can then do an emoji "sentiment analysis".
+
+To do this, we need [this site](http://kt.ijs.si/data/Emoji_sentiment_ranking/index.html) to provide sentiment scores of the tweets.
+
+```{r warning=FALSE}
+library(xml2); library(rvest)
+
+# reference website
+url <- "http://kt.ijs.si/data/Emoji_sentiment_ranking/index.html"
+
+# get emoticons
+emojis_raw <- url %>%
+  read_html() %>%
+  html_table() %>%
+  data.frame %>%
+  select(-Image.twemoji., -Sentiment.bar.c.i..95..)
+
+# rename the file
+names(emojis_raw) <- c("char", "unicode", "occurrences", "position", "negative", "neutral", 
+                   "positive", "sentiment_score", "description", "block")
+
+# change numeric unicode to character unicode to be able to match with emDict 
+emojis <- emojis_raw %>%
+  mutate(unicode = as.u_char(unicode)) %>%
+  mutate(description = tolower(description)) 
+
+# merge with emDict to get encoding
+emojis_merged <- emojis %>%
+  merge(emDict, by = "unicode")
+
+new_matchto <- emojis_merged$ftu8
+new_description <- emojis_merged$description.x
+sentiment <- emojis_merged$sentiment_score
+
+sentiments <- emojis_matching(tweets$text, new_matchto, new_description, sentiment) %>%
+  mutate(sentiment = count*as.numeric(sentiment)) %>%
+  group_by(text) %>% 
+  summarise(sentiment_score = sum(sentiment), tweet_count = n()) %>%
+  filter(!is.na(sentiment_score)) %>%
+  arrange(desc(sentiment_score))
+
+# top 10 most positive tweets by emoji sentiment
+head(sentiments, n = 10)
+```
+
