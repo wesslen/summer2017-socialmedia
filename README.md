@@ -31,7 +31,7 @@ Many of the tools were created by political scientists and therefore most exampl
 
 | Day 2: Thur July 20 | Querying, Handling and Visualizing Social Media Data    |
 | ------------------- | ------------------------------------------------------- |
-| Lecture & Demo      | [Social Media Viz Demos & Keyword Search Tips](https://wesslen.github.io/assets/documents/presentations/Social-Media-Seminar-Part1.pdf)
+| Lecture & Demo      | Social Media Viz Demos & [Keyword Search Tips](https://wesslen.github.io/assets/documents/presentations/Social-Media-Seminar-Part1.pdf)
 | Hands On Tutorial   | [Data Management from Twitter Streaming API](./day2/streaming-data.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day2/streaming-data.html) |
 | Hands On Tutorial   | [Querying Twitter Data](./day2/twitter-querying.Rmd) / [HTML]() |
 | Hands On Tutorial   | [Twitter Social Networks](./day2/twitter-social-networks.Rmd) / [HTML](http://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day2/twitter-social-networks.html)|
