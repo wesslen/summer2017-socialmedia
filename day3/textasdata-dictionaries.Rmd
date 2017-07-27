@@ -1,0 +1,160 @@
+---
+title: 'Text-as-Data: Dictionaries'
+author: "Ryan Wesslen"
+date: "July 20, 2017"
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+## Preparation
+
+### Load the Data
+
+First, let's load the data
+
+```{r}
+library(tidyverse)
+
+file <- "../data/pres_tweets.csv"
+#file <- "~/Dropbox (UNC Charlotte)/summer-2017-social-media-workshop/data/pres_tweets.csv"
+
+tweets <- read_csv(file)
+```
+
+This dataset includes about 19,000 tweets by the four major 2016 presidential candidates.
+
+This dataset excludes any retweets (i.e., only verb == "posts").
+
+```{r}
+table(tweets$displayName)
+```
+
+Let's use `quanteda` to analyze the tweet text (body).
+
+#### Create the Corpus data structure
+
+```{r}
+library(quanteda)
+
+corpus <- corpus(tweets$body,
+                 docvars = data.frame(candidate = tweets$displayName,
+                                      postedTime = tweets$estTime))
+```
+
+
+### Moral Foundations
+
+This code will count the number of times words from each dimension fall into each category.
+
+```{r}
+mfFile <- "../data/dictionaries/moral-foundations-dictionary.dic"
+#mfFile <- "~/Dropbox (UNC Charlotte)/summer-2017-social-media-workshop/data/dictionaries/moral-foundations-dictionary.dic"
+
+#Moral Foundations
+mfdict <- dictionary(file = mfFile, format = "LIWC")
+
+mfDfm <- dfm(corpus, 
+             dictionary = mfdict)
+
+as.data.frame(mfDfm[1:10])
+```
+
+What's a problem with this? 
+
+Sparsity! Most tweets may only have one or so feature.
+
+This is typically a big problem with dictionary-based methods, especially with tweets.
+
+```{r}
+mfDfm <- dfm(corpus, 
+             group = "candidate",
+             dictionary = mfdict)
+
+# transpose
+as.data.frame(t(mfDfm))
+```
+
+So this gives us how many times each candidate used a word with each dimension.
+
+However, we need to make this relative to how many tweets (could even do number of words in tweets) to adequately compare for candidates who tweeted a lot (e.g., Donald Trump) versus those that tweeted sparingly (e.g., Ted Cruz)
+
+```{r}
+mfRelDfm <- dfm_weight(mfDfm, "relFreq")
+
+# transpose
+as.data.frame(t(mfRelDfm))
+```
+
+```{r}
+mfDf <- as.data.frame(mfRelDfm)
+
+#install.packages("radarchart")
+library(radarchart)
+
+labels <- substr(colnames(mfDf),23,40)
+
+scores <- list(
+  "Bernie Sanders" = as.numeric(mfDf[1,]),
+  "Donald J. Trump" = as.numeric(mfDf[2,]),
+  "Hillary Clinton" = as.numeric(mfDf[3,]),
+  "Ted Cruz" = as.numeric(mfDf[4,])
+)
+
+chartJSRadar(scores = scores, 
+             labs = labels, 
+             maxScale = 0.3)
+```
+
+#### WordStat Dictionary
+
+```{r}
+wordStatFile <- "../data/dictionaries/WordStatSentiments.CAT"
+#wordStatFile <- "~/Dropbox (UNC Charlotte)/summer-2017-social-media-workshop/data/dictionaries/WordStatSentiments.CAT"
+
+wordStat <- dictionary(file = wordStatFile,
+                      format = "wordstat")
+```
+
+Let's explore the dictionary using a handy HTMLWidget tool, [`listviewer`](https://github.com/timelyportfolio/listviewer).
+
+```{r eval=FALSE}
+#install.packages("listviewer")
+library(listviewer)
+
+listviewer::jsonedit_gadget(wordStat)
+```
+
+```{r}
+dfm <- dfm(corpus, 
+           dictionary = wordStat,
+           groups = "candidate")
+
+topfeatures(dfm)
+dfmRel <- dfm_weight(dfm, "relFreq")
+```
+
+### Negative
+
+```{r}
+negative <- as.vector(dfmRel[, "TO_BE_IGNORED.NEGATIVE WORDS"])
+names(negative) <- docnames(dfmRel)
+dotchart(sort(negative), xlab = "WordStat \"Negative\" terms used as a proportion of all terms", 
+         pch = 19, xlim = c(0, 0.4))
+```
+
+```{r}
+negative <- as.vector(dfmRel[, "TO_BE_IGNORED.POSITIVE WORDS"])
+names(negative) <- docnames(dfmRel)
+dotchart(sort(negative), xlab = "WordStat \"Positive\" terms used as a proportion of all terms", 
+         pch = 19, xlim = c(0, 0.7))
+```
+
+```{r}
+negative <- as.vector(dfmRel[, "TO_BE_IGNORED.NEGATIONS"])
+names(negative) <- docnames(dfmRel)
+dotchart(sort(negative), xlab = "WordStat \"Negative\" terms used as a proportion of all terms", 
+         pch = 19, xlim = c(0, 0.15))
+```

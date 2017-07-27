@@ -1,0 +1,186 @@
+---
+title: "Unsupervised: Topic Modeling"
+author: Ryan Wesslen
+date: July 27, 2017
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+### Unsupervised machine learning
+
+In this exercise, we're going to run topic modeling on Tweets.
+
+Topic modeling is an unsupervised algorithm that finds hidden word occurrence patterns ("topics") within our data. 
+
+One problem with topic modeling on Twitter is that Tweets are so small, it's tough to find topics given the short document-length. One "quick fix" is to aggregate Tweets by user (e.g. combines all of my tweets and treat them as one document).
+
+A benefit of topic modeling is that you can assign document-level probabilities per topic. This way you can measure the mix of topics across documents. In this example, our documents "are" Twitter users. Therefore, we can analyze a user-topic probability matrix and get an idea of who is tweeting.
+
+### Step 1: Read in the data. 
+
+Let's read in our Charlotte sample dataset.
+
+```{r}
+library(tidyverse)
+#remove one of the "." if you are running as chunks
+tweets <- read_csv('../data/CharlotteTweets20Sample.csv')
+source('./functions.R')
+
+#updated for quanteda version 0.9.9-50
+library(quanteda)
+twcorpus <- corpus(tweets$body)
+```
+
+Let's load in the user ID number as a document (originally on Tweet level) attribute. We'll use the `groups` optition on `dfm` to aggregate our Tweets by the user (actor.id).
+
+Let's create the DFM object and trim all words used less than 40 times.
+
+```{r}
+docvars(twcorpus, "actor.id") <- as.character(tweets$actor.id) 
+twdfm <- dfm(twcorpus, 
+             groups = "actor.id", 
+             remove = c(stopwords("english"), "t.co", "https", "rt", "amp", "http", "t.c", "can", "u"), 
+             remove_punct = TRUE, 
+             remove_numbers = TRUE, 
+             remove_symbols = TRUE,
+             remove_url = TRUE,
+             ngrams= 1L)
+twdfm <- dfm_trim(twdfm, min_docfreq = 3)
+```
+
+Let's look at the top 50 words.
+
+```{r}
+topfeatures(twdfm, 50)
+```
+
+No surprise Charlotte-related terms are the most popular. Recall - this dataset only obtained geolocated Tweets (excluded non-geolocated Tweets).
+
+### Step 2: Text exploratory analysis.
+
+Let's do some exploratory analysis to understand the content.
+
+```{r warning=FALSE}
+library(RColorBrewer)
+
+textplot_wordcloud(twdfm, 
+                   scale=c(3.5, .75), 
+                   colors=brewer.pal(8, "Dark2"), 
+                   random.order = F, 
+                   rot.per=0.1, 
+                   max.words=250)
+```
+
+We can also rerun the word cloud to weight not by the term frequency by the TF-IDF weights.
+
+```{r warning = FALSE}
+textplot_wordcloud(tfidf(twdfm), 
+                   scale=c(3.5, .75), 
+                   colors=brewer.pal(8, "Dark2"), 
+                   random.order = F, 
+                   rot.per=0.1, 
+                   max.words=250)
+```
+
+We can also run a word clustering...
+
+```{r}
+numWords <- 35
+
+wordDfm <- sort(weight(twdfm, "tfidf"))
+wordDfm <- t(wordDfm)[1:numWords,]  # keep the top numWords words
+wordDistMat <- dist(wordDfm)
+wordCluster <- hclust(wordDistMat)
+plot(wordCluster, xlab="", main="TF-IDF Frequency weighting")
+```
+
+### Step 3: Run topic modeling.
+
+Now, let's run a simple 20 topic model.
+
+We'll use the package `topicmodels`.
+
+```{r}
+# install.packages("topicmodels")
+library(topicmodels)
+
+# we now export to a format that we can run the topic model with
+dtm <- convert(twdfm, to="topicmodels")
+
+# estimate LDA with K topics
+K <- 20
+lda <- LDA(dtm, k = K, method = "Gibbs", 
+                control = list(verbose=25L, seed = 123, burnin = 100, iter = 500))
+```
+
+Let's explore the topics.
+
+```{r}
+term <- terms(lda, 10)
+colnames(term) <- paste("Topic",1:K)
+
+term
+```
+
+How can we interpret these topics? 
+
+### Step 4: Interactive topic visualization.
+
+If you want to run a LDA interactive visualization, run this chunk:
+
+```{r, eval=FALSE, include=T}
+#Create Json for LDAVis
+library(LDAvis)
+json <- topicmodels_json_ldavis(lda,twdfm,dtm)
+new.order <- RJSONIO::fromJSON(json)$topic.order
+
+# Topic #'s reordered!!
+term <- term[,new.order]
+
+serVis(json, out.dir = 'charlotteLDA', open.browser = TRUE)
+```
+
+### Step 5: Finding Topic "Experts"
+
+Like topics are probability distribution of words, in LDA documents are probability distributions of topics. In our case, since documents are on the user-level, we can infer that users' Twitter logs are assumed to be a distribution of topics. 
+
+Accordingly, we can rank Twitter users by those who rank highest for a topic.
+
+First, let's extract the document-topic probability matrix.
+
+```{r}
+# to get topic probabilities per actor ID (Twitter user)
+postlist <- posterior(lda)
+probtopics <- data.frame(postlist$topics)
+#probtopics <- probtopics[,new.order]
+colnames(probtopics) <- paste("Topic",1:K)
+```
+
+Next, let's find the "expert" for Topic 8.
+
+```{r}
+filter.topic <- "Topic 8"
+
+row <- order(-probtopics[,filter.topic])
+actorid <- rownames(probtopics[row[1],])
+filter.data <- subset(tweets, actor.id == actorid)
+filter.data <- filter.data[order(filter.data$postedTime),]
+```
+
+Explore "experts" for other topics. Do they make sense?
+
+### Step 6: Deeper LDA Analysis
+
+Further analysis could take as a covariate:
+
+1.  Device (e.g. Foursquare vs Untappd vs Twitter iPhone, etc.)
+
+2.  Profile location description (e.g. Charlotte, Fort Mill, Gastonia, etc.)
+
+3.  Profile description keywords (e.g. husband, wife, student, etc.)
+
+A new extension to LDA has been created ("structural topic model") by social scientists to create a framework to consider covariates impact on topic model results. For more details on running more advanced versions of LDA like CTM and STM, I created a newer [workshop on topic modeling](https://github.com/wesslen/Topic-Modeling-Workshop-with-R).
+

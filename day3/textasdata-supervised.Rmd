@@ -1,0 +1,116 @@
+---
+title: "Supervised machine learning"
+author: Ryan Wesslen
+date: July 27, 2017
+output: html_document
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+### Supervised machine learning
+
+We'll be working with tweets from the four major US presidential candidates' Twitter accounts.
+
+Let's create an algorithm to determine what words most distinctively are used by Donald Trump relative to Ted Cruz.
+
+This example was created from workshop materials created by Pablo Barbera.
+
+```{r}
+library(tidyverse)
+
+tweets <- read_csv("../data/pres_tweets.csv")
+tweets <- subset(tweets, displayName %in% c("Donald J. Trump","Ted Cruz"))
+tweets$trump <- ifelse(tweets$displayName=="Donald J. Trump", 0, 1)
+```
+
+We'll do some cleaning as well -- substituting handles with @. Why? We want to provent overfitting.
+
+```{r}
+tweets$body <- gsub('@[0-9_A-Za-z]+', '@', tweets$body)
+```
+
+Create the dfm and trim it so that only tokens that appear in 10 or more tweets are included.
+
+```{r}
+# updated for quanteda 0.9.9.50
+library(quanteda)
+twcorpus <- corpus(tweets$body)
+twdfm <- dfm(twcorpus, 
+             remove=c(stopwords("english"), "t.co", "https", "rt", "amp", "http", "t.c", "can"),
+             remove_numbers = TRUE, 
+             remove_symbols = TRUE,
+             remove_url = TRUE
+             )
+twdfm <- dfm_trim(twdfm, min_count = 10)
+```
+
+And split the dataset into training and test set. We'll go with 80% training and 20% set. Note the use of a random seed to make sure our results are replicable.
+
+```{r}
+set.seed(123)
+training <- sample(1:nrow(tweets), floor(.80 * nrow(tweets)))
+test <- (1:nrow(tweets))[1:nrow(tweets) %in% training == FALSE]
+```
+
+Our first step is to train the classifier using cross-validation. There are many packages in R to run machine learning models. For regularized regression, glmnet is in my opinion the best. It's much faster than caret or mlr (in my experience at least), and it has cross-validation already built-in, so we don't need to code it from scratch.
+
+```{r}
+library(glmnet)
+require(doMC)
+registerDoMC(cores=3)
+ridge <- cv.glmnet(twdfm[training,], tweets$trump[training], 
+	family="binomial", alpha=0, nfolds=5, parallel=TRUE,
+	type.measure="deviance")
+plot(ridge)
+```
+
+We can now compute the performance metrics on the test set.
+
+```{r}
+## function to compute accuracy
+accuracy <- function(ypred, y){
+	tab <- table(ypred, y)
+	return(sum(diag(tab))/sum(tab))
+}
+# function to compute precision
+precision <- function(ypred, y){
+	tab <- table(ypred, y)
+	return((tab[2,2])/(tab[2,1]+tab[2,2]))
+}
+# function to compute recall
+recall <- function(ypred, y){
+	tab <- table(ypred, y)
+	return(tab[2,2]/(tab[1,2]+tab[2,2]))
+}
+# computing predicted values
+preds <- predict(ridge, twdfm[test,], type="response") > mean(tweets$trump[test])
+# confusion matrix
+table(preds, tweets$trump[test])
+# performance metrics
+accuracy(preds, tweets$trump[test])
+precision(preds, tweets$trump[test])
+recall(preds, tweets$trump[test])
+```
+
+Something that is often very useful is to look at the actual estiamted coefficients and see which of these have the highest or lowest values:
+
+```{r}
+# from the different values of lambda, let's pick the best one
+best.lambda <- which(ridge$lambda==ridge$lambda.min)
+beta <- ridge$glmnet.fit$beta[,best.lambda]
+head(beta)
+
+## identifying predictive features
+df <- data.frame(coef = as.numeric(beta),
+				word = names(beta), stringsAsFactors=F)
+
+df <- df[order(df$coef),]
+head(df[,c("coef", "word")], n=30)
+paste(df$word[1:30], collapse=", ")
+df <- df[order(df$coef, decreasing=TRUE),]
+head(df[,c("coef", "word")], n=30)
+paste(df$word[1:30], collapse=", ")
+```
+

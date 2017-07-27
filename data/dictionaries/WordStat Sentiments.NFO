@@ -1,0 +1,30 @@
+[PROTECTION]
+Stemming=0
+Exclusion List=0
+Include Level=0
+Overlap=0
+Category only=0
+Exclude word=0
+Process numeric=0
+Valid char=0
+Case sensitive=0
+Exclusion=0
+Inclusion=0
+[DESCRIPTION]
+Show=1
+TEXT=WordStat Sentiment Dictionary v1.2.  For more information on proper use of this ^pdictionary see:^p^p   http://www.provalisresearch.com/wordstat/Sentiment-Analysis.html^p^pCopyright (C) 2012, Provalis Research
+[WordStat]
+Level=1
+Stemming=0
+Stemming type=English - Lemmatization
+Exclusion=1
+Exclusion List=C:\Users\Normand\Documents\My Provalis Research Projects\Dict\English no exclusion.exc
+Last Category=1
+Process Numeric=1
+Exclude Category Names=1
+Characters=
+Case sensitive=0
+Overlap=1
+[CATEGORIES]
+\TO BE IGNORED\NEGATIVE WORDS=
+\TO BE IGNORED\POSITIVE WORDS=

@@ -1,0 +1,195 @@
+---
+title: "Word Embeddings: Finding Word Analogies"
+author: "Ryan Wesslen"
+date: "July 27, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+## Word Embeddings - GloVe model
+
+### References
+
+The first two references show demos of using the R `text2vec` package to run GloVe. The third reference is by the original authors to summarize details about the model.
+
+* [Reference 1](http://dsnotes.com/post/glove-enwiki/)
+
+* [Reference 2](https://cran.r-project.org/web/packages/text2vec/vignettes/glove.html)
+
+* [Original GloVe Website](http://nlp.stanford.edu/projects/glove/)
+
+### Load the Data
+
+First, let's load the data. We'll use the `readr` package that is embedded in the `tidyverse` package.
+
+```{r load data}
+library(tidyverse) #install.packages("tidyverse") if you do not have the package
+
+# one column csv of text -- column text
+
+file <- "../data/pres_tweets.csv"
+data <- read_csv(file)
+```
+
+### Preprocessing
+
+Let's first run preprocessing to tokenize and create the vocabulary. 
+
+Notice that the `text2vec` model does not use the standard `quanteda` framework for preprocessing as it creates a co-occurence matrix rather than the document-term matrix (`dfm`).
+
+```{r}
+library(text2vec); #install.packages("text2vec"), also will need stringr and quanteda for two functions
+
+#remove punctuation
+text <- stringr::str_replace_all(data$body,"[[:punct:]]","")
+
+# Create iterator over tokens
+tokens <- regexp_tokenizer(quanteda::char_tolower(text), " ", TRUE)
+# Create vocabulary. Terms will be unigrams (simple words).
+it = itoken(tokens, progressbar = FALSE)
+vocab <- create_vocabulary(it, stopwords = c(quanteda::stopwords("english"),""))
+```
+
+Let's remove sparse and very frequent terms.
+
+```{r}
+# Note, words with less than 1%
+vocab <- prune_vocabulary(vocab, doc_proportion_min = 0.005, doc_proportion_max = 0.99)
+```
+
+Let's plot the terms by documen
+
+```{r}
+library(scatterD3)
+
+scatterD3(vocab$vocab$terms_counts, 
+          vocab$vocab$doc_counts, 
+          lab = vocab$vocab$terms,
+          xlab = "Word Counts (# of times word is used in corpus)",
+          ylab = "Document Counts  (# of docs word is in)")
+```
+
+Let's now create the co-occurrence matrix.
+
+```{r}
+# Use our filtered vocabulary
+vectorizer <- vocab_vectorizer(vocab, 
+                               # don't vectorize input
+                               grow_dtm = FALSE, 
+                               # use window of 5 for context words
+                               skip_grams_window = 5L)
+tcm <- create_tcm(it, vectorizer)
+```
+
+Let's use three out of my computer's four cores and run the GloVe model.
+
+```{r}
+RcppParallel::setThreadOptions(numThreads = 3)
+GloVe = GlobalVectors$new(word_vectors_size = 50, vocabulary = vocab, x_max = 10)
+GloVe$fit(tcm, n_iter = 50)
+```
+
+Let's get the 50 feature vectors for the words and then plot the first two vectors for each word...
+
+```{r}
+word_vectors <- GloVe$get_word_vectors()
+#write.csv(word_vectors, "./GloVe-features.csv", row.names = T)
+
+# install.packages("Rtsne")
+tsne <- Rtsne::Rtsne(word_vectors, dims = 2, verbose=TRUE, max_iter = 500)
+
+# create data frame
+df <- data.frame(X = tsne$Y[,1], Y = tsne$Y[,2])
+
+
+scatterD3(df$X, 
+          df$Y, 
+          lab = row.names(word_vectors),
+          xlab = "1st Vector",
+          ylab = "2nd Vector")
+```
+
+This doesn't look like much because this is only considering 2 of the 50 total dimensions! In this sense, this method is like principal components analysis in which we "reduced" the information from the vector space (co-occurrence counts) to 50 features. Therefore, to visualize, we need a better way to analyse the similarlity between words.
+
+Therefore, let's run cosine similarity which is a distance function that can give a measurement (from 0 to 1) on how similar two words are based on each word's (50) factor values. 
+
+Let's run cosine similarity to create a matrix on how similar each of the words are to one another.
+
+```{r}
+cos_sim = sim2(x = word_vectors, y = word_vectors, method = "cosine", norm = "l2")
+#write_csv(as.data.frame(cos_sim), "cos-sim.csv")
+```
+
+First, let's run the raw network.
+
+```{r}
+library(visNetwork); library(igraph)
+
+g <- igraph::graph.adjacency(cos_sim, mode="undirected", weighted=TRUE, diag=FALSE)
+E(g)$width <- abs(E(g)$weight)
+
+t <- merge(data.frame(name = as.character(V(g)$name), stringsAsFactors = F), 
+      data.frame(name = as.character(vocab$vocab$terms), 
+                 Count = vocab$vocab$terms_counts, stringsAsFactors = F),
+       by = "name")
+
+```
+
+Next, let's use an arbitrary threshold cosine similarity (we can modify), we can create a network plot of how similar the actions are using the GloVe model.
+
+```{r}
+cutoff = 0.47
+
+g <- igraph::graph.adjacency(cos_sim, mode="undirected", weighted=TRUE, diag=FALSE)
+E(g)$width <- abs(E(g)$weight)*10
+
+t <- merge(data.frame(name = as.character(V(g)$name), stringsAsFactors = F), 
+      data.frame(name = as.character(vocab$vocab$terms), 
+                 Count = vocab$vocab$terms_counts, stringsAsFactors = F),
+       by = "name")
+
+
+V(g)$size <- t$Count[match(V(g)$name, t$name)] / 20 + 5
+
+g <- delete.edges(g, E(g)[ abs(weight) < cutoff])
+
+E(g)$color <- ifelse(E(g)$weight > 0, "blue","red")
+E(g)$weight <- abs(E(g)$weight)
+iso <- V(g)[degree(g)==0]
+g <- delete.vertices(g, iso)
+
+clp <- igraph::cluster_label_prop(g)
+class(clp)
+V(g)$color <- RColorBrewer::brewer.pal(12, "Set3")[as.factor(clp$membership)]
+
+visIgraph(g) %>%   visOptions(highlightNearest = list(enabled = TRUE, algorithm = "hierarchical")) %>% 
+  visInteraction(navigationButtons = TRUE) 
+```
+
+This shows the connection between words that are used in a similar context (5 words). Think of this like a "localized" or "micro" topic model where document level is switched to a rolling five word context.
+
+## Linear Substructures
+
+First, we can find, given a word (say "border"), what words were used most similarly (i.e., in the same context).
+
+```{r}
+word <- word_vectors["border", , drop = FALSE] 
+cos_sim_ex = sim2(x = word_vectors, y = word, method = "cosine", norm = "l2")
+head(sort(cos_sim_ex[,1], decreasing = TRUE), 10)
+```
+
+Linear substructures allow "algebra" on words: plus (+) or minus (-). This allows us to see how the context changes when we include "shows".
+
+
+```{r}
+word <- word_vectors["trump", , drop = FALSE] +
+  word_vectors["president", , drop = FALSE] -
+  word_vectors["wall", , drop = FALSE] 
+cos_sim_ex = sim2(x = word_vectors, y = word, method = "cosine", norm = "l2")
+head(sort(cos_sim_ex[,1], decreasing = TRUE), 10)
+```
+
+ See the [GloVe website](http://nlp.stanford.edu/projects/glove/) for a better explanation.
