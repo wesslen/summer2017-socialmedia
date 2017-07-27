@@ -16,7 +16,7 @@
 
 * [Ryan Wesslen](http://wesslen.github.io)
 
-This three part workshop series will cover three major tools for computational social scientist toolkit to analyze social media data. In addition to hands-on working materials, each workshop will include 2-3 important research papers and GitHub repositories. These workshops will use R and participants are required to bring their own laptops with R and R Studio pre-installed. Previous experience with R is required (e.g., setting up working directory, installing/loading packages, read/write flat files like CSV, and basic dataframe manipulation).
+This three part workshop series will cover three major tools for computational social scientist toolkit to analyze social media data. In addition to hands-on working materials, each workshop will include 2-3 important research papers and GitHub repositories.
 
 Many of the tools were created by political scientists and therefore most examples will focus on political-related events although they can easily be applied to other social sciences (e.g., geography, communications, management, sociology, public health).
 
@@ -37,14 +37,14 @@ Many of the tools were created by political scientists and therefore most exampl
 | Hands On Tutorial   | [Twitter Social Networks](./day2/twitter-social-networks.Rmd) / [HTML](http://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day2/twitter-social-networks.html)|
 | Hands On Tutorial   | [Twitter Followers](./day2/twitter-followers.Rmd) |
 
-| Day 3: Thur July 27 | Text as data: Analyzing Social Media Content            |
+| Day 3: Thur July 27 | Text as Data: Analyzing Social Media Content            |
 | ------------------- | ------------------------------------------------------- |
 | Lecture             | [Text as Data for Social Media](./slides/textasdata.pdf) |
-| Case Study          | [Dictionary-based ](./day3/textasdata-dictionaries.Rmd)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-dictionaries.html) |
+| Case Study          | [Dictionary-based ](./day3/textasdata-dictionaries.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-dictionaries.html) |
 | Case Study          | [Supervised Machine Learning ](./day3/textasdata-supervised.Rmd)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-supervised.html) |
-| Case Study          | [Topic Modeling ](./day3/textasdata-topicmodeling.Rmd)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-topicmodeling.html) |
-| Optional         | [Word Embedding (GloVe)](./day3/word-embedding.Rmd)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/word-embedding.html) |
-| Optional            | [Emoji Sentiment Analysis](./day3/emoji-sentiment.Rmd) [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/emoji-sentiment.html) |
+| Case Study          | [Topic Modeling ](./day3/textasdata-topicmodeling.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-topicmodeling.html) |
+| Optional         | [Word Embedding (GloVe)](./day3/word-embedding.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/word-embedding.html) |
+| Optional            | [Emoji Sentiment Analysis](./day3/emoji-sentiment.Rmd) /  [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/emoji-sentiment.html) |
 
 ## Setup and Preparation
 
