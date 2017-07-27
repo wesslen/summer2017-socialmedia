@@ -43,8 +43,8 @@ Many of the tools were created by political scientists and therefore most exampl
 | Case Study          | [Dictionary-based ](./day3/textasdata-dictionaries.Rmd)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-dictionaries.html) |
 | Case Study          | [Supervised Machine Learning ](./day3/textasdata-supervised.Rmd)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-supervised.html) |
 | Case Study          | [Topic Modeling ](./day3/textasdata-topicmodeling.Rmd)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-topicmodeling.html) |
-| Optional         | [Word Embedding (GloVe)](./day3/word-embedding)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/word-embedding.html) |
-| Optional            | [Emoji Sentiment Analysis](./day3/emoji-sentiment.Rmd) [HTML]() |
+| Optional         | [Word Embedding (GloVe)](./day3/word-embedding.Rmd)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/word-embedding.html) |
+| Optional            | [Emoji Sentiment Analysis](./day3/emoji-sentiment.Rmd) [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/emoji-sentiment.html) |
 
 ## Setup and Preparation
 
