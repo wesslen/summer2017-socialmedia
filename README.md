@@ -32,19 +32,19 @@ Many of the tools were created by political scientists and therefore most exampl
 | Day 2: Thur July 20 | Querying, Handling and Visualizing Social Media Data    |
 | ------------------- | ------------------------------------------------------- |
 | Lecture & Demo      | Social Media Viz Demos & [Keyword Search Tips](https://wesslen.github.io/assets/documents/presentations/Social-Media-Seminar-Part1.pdf)
-| Hands On Tutorial   | [Data Management for Twitter Streaming API Data](./day2/streaming-data.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day2/streaming-data.html) |
-| Hands On Tutorial   | [Querying Twitter Data](./day2/twitter-querying.Rmd) / [HTML]() |
-| Hands On Tutorial   | [Twitter Social Networks](./day2/twitter-social-networks.Rmd) / [HTML](http://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day2/twitter-social-networks.html)|
+| Hands On Tutorial   | [Data Management for Twitter Streaming API Data](./day2/streaming-data.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer2017-social-media-workshop/blob/master/day2/streaming-data.html) |
+| Hands On Tutorial   | [Querying Twitter Data](./day2/twitter-querying.Rmd) / [HTML](http://htmlpreview.github.io/?https://github.com/wesslen/summer2017-social-media-workshop/blob/master/day2/twitter-querying.html) |
+| Hands On Tutorial   | [Twitter Social Networks](./day2/twitter-social-networks.Rmd) / [HTML](http://htmlpreview.github.io/?https://github.com/wesslen/summer2017-social-media-workshop/blob/master/day2/twitter-social-networks.html)|
 | Hands On Tutorial   | [Twitter Followers](./day2/twitter-followers.Rmd) |
 
 | Day 3: Thur July 27 | Text as Data: Analyzing Social Media Content            |
 | ------------------- | ------------------------------------------------------- |
 | Lecture             | [Text as Data for Social Media](./slides/textasdata.pdf) |
-| Case Study          | [Dictionary-based ](./day3/textasdata-dictionaries.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-dictionaries.html) |
-| Case Study          | [Supervised Machine Learning ](./day3/textasdata-supervised.Rmd)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-supervised.html) |
-| Case Study          | [Topic Modeling ](./day3/textasdata-topicmodeling.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/textasdata-topicmodeling.html) |
-| Optional         | [Word Embedding (GloVe)](./day3/word-embedding.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/word-embedding.html) |
-| Optional            | [Emoji Sentiment Analysis](./day3/emoji-sentiment.Rmd) /  [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer-2017-social-media-workshop/blob/master/day3/emoji-sentiment.html) |
+| Case Study          | [Dictionary-based ](./day3/textasdata-dictionaries.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer2017-social-media-workshop/blob/master/day3/textasdata-dictionaries.html) |
+| Case Study          | [Supervised Machine Learning ](./day3/textasdata-supervised.Rmd)[HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer2017-social-media-workshop/blob/master/day3/textasdata-supervised.html) |
+| Case Study          | [Topic Modeling ](./day3/textasdata-topicmodeling.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer2017-social-media-workshop/blob/master/day3/textasdata-topicmodeling.html) |
+| Optional         | [Word Embedding (GloVe)](./day3/word-embedding.Rmd) / [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer2017-social-media-workshop/blob/master/day3/word-embedding.html) |
+| Optional            | [Emoji Sentiment Analysis](./day3/emoji-sentiment.Rmd) /  [HTML](https://htmlpreview.github.io/?https://github.com/wesslen/summer2017-social-media-workshop/blob/master/day3/emoji-sentiment.html) |
 
 ## Setup and Preparation
 
