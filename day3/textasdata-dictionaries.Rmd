@@ -155,6 +155,6 @@ dotchart(sort(negative), xlab = "WordStat \"Positive\" terms used as a proportio
 ```{r}
 negative <- as.vector(dfmRel[, "TO_BE_IGNORED.NEGATIONS"])
 names(negative) <- docnames(dfmRel)
-dotchart(sort(negative), xlab = "WordStat \"Negative\" terms used as a proportion of all terms", 
+dotchart(sort(negative), xlab = "WordStat \"Negation\" terms used as a proportion of all terms", 
          pch = 19, xlim = c(0, 0.15))
 ```
