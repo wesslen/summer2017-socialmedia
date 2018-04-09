@@ -94,7 +94,7 @@ mfDf <- as.data.frame(mfRelDfm)
 #install.packages("radarchart")
 library(radarchart)
 
-labels <- substr(colnames(mfDf),23,40)
+labels <- colnames(mfDf)[2:12]
 
 scores <- list(
   "Bernie Sanders" = as.numeric(mfDf[1,]),
